@@ -3,5 +3,5 @@ IDS based on kernel Linux.\
 Project carried out as part of the development lesson in computer systems security studies.\
 The IDS should listen for network traffic and warn if a packet is suspicious by adding an entry in the syslog.
 ```
-Created by MaxWLM & **Teckinfor
+Created by MaxWLM & Teckinfor
 ```
