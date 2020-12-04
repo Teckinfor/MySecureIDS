@@ -29,7 +29,7 @@ void print_help_menu(){
     printf("MySecureIDS - msids\n");
     printf("Use : msids [interface] [options]\n");
     printf("\nOptions :\n");
-    printf("-l,      define the number of frames to read\n");
+    printf("-l         Define the number of frames to read.\n           By default, the number of frames is fixed at 25.\n");
     printf("\nFor more information, visit our GitHub :\nhttps://github.com/Teckinfor/MySecureIDS\n");
 }
 
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
                 }
         }
 
-        if(is_interface && is_nloop && !is_help){
+        if(is_interface && !is_help){
                 printf("Listening on %s...\n", device);
                 char error_buffer[PCAP_ERRBUF_SIZE];
                 pcap_t *handle;
@@ -80,6 +80,10 @@ int main(int argc, char *argv[])
                 handle = pcap_create(device,error_buffer);
                 pcap_set_timeout(handle,10);
                 pcap_activate(handle);
+
+                if(!is_nloop){
+                        nloop = 25;
+                }
 
                 pcap_loop(handle, nloop, my_packet_handler, NULL);
 
