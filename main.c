@@ -25,13 +25,23 @@ void my_packet_handler(
 
 }
 
+void print_help_menu(){
+    printf("MySecureIDS - msids\n");
+    printf("Use : msids [interface] [options]\n");
+    printf("\nOptions :\n");
+    printf("-l,      define the number of frames to read\n");
+    printf("\nFor more information, visit our GitHub :\nhttps://github.com/Teckinfor/MySecureIDS\n");
+}
+
 int main(int argc, char *argv[]) 
 {
 
+        //char *device = argv[1];
         int is_interface = 0;
         const char* device;
         int nloop;
         int is_nloop = 0;
+        int is_help = 0;
         for(int i = 0; i < argc; i++){
                 
                 //Setting up the interface
@@ -54,9 +64,15 @@ int main(int argc, char *argv[])
                         nloop = (int)strtol(argv[i+1], &endptr, 10); //To convert a pointer of char in an integer
                         is_nloop = 1;
                 }
+
+                //Display the help menu
+                else if(!strcmp(argv[i],"-h")||!strcmp(argv[i],"--help")){
+                        print_help_menu();
+                        is_help = 1;
+                }
         }
 
-        if(is_interface && is_nloop){
+        if(is_interface && is_nloop && !is_help){
                 printf("Listening on %s...\n", device);
                 char error_buffer[PCAP_ERRBUF_SIZE];
                 pcap_t *handle;
@@ -69,7 +85,7 @@ int main(int argc, char *argv[])
 
                 return 0;
         }
-        else{
+        else if(!is_help){
                 printf("Missing arguments. Do \"ids --help\" or \"ids -h\" for more information.\n");
         }
         
