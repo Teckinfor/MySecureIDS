@@ -20,7 +20,7 @@ void my_packet_handler(
         const struct pcap_pkthdr *header,
         const u_char *packet
 )
-    print_payload();
+
 {
 
 }
