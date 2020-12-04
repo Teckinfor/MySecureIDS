@@ -28,16 +28,49 @@ void my_packet_handler(
 int main(int argc, char *argv[]) 
 {
 
-        char *device = "eth0";
-        char error_buffer[PCAP_ERRBUF_SIZE];
-        pcap_t *handle;
+        int is_interface = 0;
+        const char* device;
+        int nloop;
+        int is_nloop = 0;
+        for(int i = 0; i < argc; i++){
+                
+                //Setting up the interface
+                if(!strcmp(argv[i], "-d")){
+                        
+                        device = argv[i + 1];
+                        is_interface = 1;
+                }
 
-        handle = pcap_create(device,error_buffer);
-        pcap_set_timeout(handle,10);
-        pcap_activate(handle);
-        int total_packet_count = 10;
+                //Setting up the number of loops
+                else if(!strcmp(argv[i], "-l")){
+                        if(argv[i + 1] == NULL){
+                                break;
+                        }
+                        else if(sscanf(argv[i + 1], "%d", &nloop) != 1){ //Check that the argument is an integer
+                                printf("\"%s\" is a bad argument for loop -l\n",argv[i + 1]);
+                                break;
+                        }
+                        char* endptr;
+                        nloop = (int)strtol(argv[i+1], &endptr, 10); //To convert a pointer of char in an integer
+                        is_nloop = 1;
+                }
+        }
 
-        pcap_loop(handle, total_packet_count, my_packet_handler, NULL);
+        if(is_interface && is_nloop){
+                printf("Listening on %s...\n", device);
+                char error_buffer[PCAP_ERRBUF_SIZE];
+                pcap_t *handle;
 
-        return 0;
+                handle = pcap_create(device,error_buffer);
+                pcap_set_timeout(handle,10);
+                pcap_activate(handle);
+
+                pcap_loop(handle, nloop, my_packet_handler, NULL);
+
+                return 0;
+        }
+        else{
+                printf("Missing arguments. Do \"ids --help\" or \"ids -h\" for more information.\n");
+        }
+        
 }
