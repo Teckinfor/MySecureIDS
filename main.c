@@ -58,7 +58,6 @@ void print_help_menu(){
 int main(int argc, char *argv[]) 
 {
 
-        //char *device = argv[1];
         int is_interface = 0;
         const char* device;
         int nloop;
