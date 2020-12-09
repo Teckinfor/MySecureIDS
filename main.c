@@ -1,3 +1,4 @@
+  
 #include "populate.h"
 #include <stdlib.h>
 #include <string.h>
@@ -48,13 +49,13 @@ void print_help_menu(){
     printf("MySecureIDS - msids\n");
     printf("Use : msids [interface] [options]\n");
     printf("\nOptions :\n");
-    printf("-l         Define the number of frames to read.\n           By default, the number of frames is fixed at 25.\n");
+    printf("-a         Set the rules file.\n           By default, this is the file named ids.rules which is located in the same folder as msids.\n\n");
+    printf("-l         Define the number of frames to read.\n           By default, the number of frames is fixed at 25.\n\n");
     printf("\nFor more information, visit our GitHub :\nhttps://github.com/Teckinfor/MySecureIDS\n");
 }
 
 int main(int argc, char *argv[]) 
 {
-        printf("MySecureIDS is running : \n");
 
         //char *device = argv[1];
         int is_interface = 0;
@@ -62,17 +63,19 @@ int main(int argc, char *argv[])
         int nloop;
         int is_nloop = 0;
         int is_help = 0;
+        int is_address = 0;
+        char* file_address;
         for(int i = 0; i < argc; i++){
                 
                 //Setting up the interface
-                if(!strcmp(argv[i], "-d")){
+                if(argv[1]!=NULL){
                         
-                        device = argv[i + 1];
-                        is_interface = 1;
+                    device = argv[1];
+                    is_interface = 1;
                 }
 
                 //Setting up the number of loops
-                else if(!strcmp(argv[i], "-l")){
+                if(!strcmp(argv[i], "-l")){
                         if(argv[i + 1] == NULL){
                                 break;
                         }
@@ -90,12 +93,30 @@ int main(int argc, char *argv[])
                         print_help_menu();
                         is_help = 1;
                 }
+
+                //Set the rules file
+                else if(!strcmp(argv[i],"-a")){
+                    if(argv[i+1] == NULL){
+                        printf("Rules file argument missing\n");
+                        exit(1);
+                    }
+                    file_address = argv[i+1];
+                    is_address = 1;
+                    
+                }
         }
 
         if(is_interface && !is_help){
+
+                printf("MySecureIDS is running : \n");
+
+                //Checking if an address was entered
+                if(!is_address){
+                    file_address = "ids.rules";
+                }
                 
                 //Check the number of rules
-                FILE *file = fopen("ids.rules","r");
+                FILE *file = fopen(file_address,"r");
                 int n_rules = 0;
                 char rule[MAXLINE];
 
@@ -106,11 +127,11 @@ int main(int argc, char *argv[])
                 while(fgets(rule,MAXLINE,file)!= NULL){
                         n_rules ++;
                 }
-                printf("%d rules have been found\n",n_rules);
+                printf("%d rules have been found in %s\n",n_rules,file_address);
                 fclose(file);
 
                 //Read all rules
-                FILE *rule_file = fopen("ids.rules","r");
+                FILE *rule_file = fopen(file_address,"r");
                 Rule lst_rules[n_rules];
                 read_rules(rule_file, lst_rules, n_rules);
                 fclose(rule_file);
