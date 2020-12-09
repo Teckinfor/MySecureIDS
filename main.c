@@ -51,6 +51,7 @@ void print_help_menu(){
     printf("\nOptions :\n");
     printf("-a         Set the rules file.\n           By default, this is the file named ids.rules which is located in the same folder as msids.\n\n");
     printf("-l         Define the number of frames to read.\n           By default, the number of frames is fixed at 25.\n\n");
+    printf("-p         Enable the print of alerts.\n           By default, alerts are just written in the syslog.\n\n");
     printf("\nFor more information, visit our GitHub :\nhttps://github.com/Teckinfor/MySecureIDS\n");
 }
 
