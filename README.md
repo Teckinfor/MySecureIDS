@@ -4,5 +4,5 @@ Project carried out as part of the development lesson in computer systems securi
 The IDS should listen for network traffic and warn if a packet is suspicious by adding an entry in the syslog.
 ```
 Created by WALLEMME Maxime & SENECHAL Julien
-aka maxWLM & Teckinfot
+aka maxWLM & Teckinfor
 ```
