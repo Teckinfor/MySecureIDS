@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAXLINE 25
+#define MAXLINE 255
 
 struct ids_rule{
         char* action;
