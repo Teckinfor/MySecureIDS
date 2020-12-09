@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define MAXLINE 25
+
 struct ids_rule{
         char* action;
         char* protocol;
