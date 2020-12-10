@@ -30,6 +30,7 @@ void print_payload(int payload_length, unsigned char *payload)
 
 int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, ETHER_Frame *custom_frame)
 {
+        printf("\n-----New packet-----\n");
         const struct sniff_ethernet *ethernet; /* The ethernet header */
         const struct sniff_ip *ip; /* The IP header */
         const struct sniff_tcp *tcp; /* The TCP header */
