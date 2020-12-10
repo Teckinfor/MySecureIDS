@@ -43,6 +43,9 @@ void read_rules(FILE * file, Rule *rules_ds, int count){
 
 void my_packet_handler(u_char *args,const struct pcap_pkthdr *header,const u_char *packet){
 
+        ETHER_Frame frame;
+        populate_packet_ds(header,packet,&frame);
+
 }
 
 void print_help_menu(){
