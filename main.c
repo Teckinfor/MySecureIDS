@@ -44,7 +44,37 @@ void read_rules(FILE * file, Rule *rules_ds, int count){
 void my_packet_handler(u_char *args,const struct pcap_pkthdr *header,const u_char *packet){
 
         ETHER_Frame frame;
-        populate_packet_ds(header,packet,&frame);
+        populate_packet_ds(header,packet,&frame,args);
+
+        if(args){
+                if(frame.ethernet_type == IPV4){
+                        switch (show_protocol(&frame))
+                        {
+                        case 1:
+                                printf("Protocol : TCP\n");
+                                break;
+                        case 2:
+                                printf("Protocol : UDP\n");
+                                break;
+                        case 3:
+                                printf("Protocol : HTTP\n");
+                                break;
+                        case 0:
+                                printf("Protocol : Not referenced\n");
+                                break;
+                        
+                        default:
+                                break;
+                        }
+
+                        if(show_protocol(&frame) == 3){
+                                printf("\n~~~~~DATA~~~~~\n");
+                                print_payload(frame.data.data.data_length,frame.data.data.data);
+                        }
+                }
+                
+        }
+        
 
 }
 
@@ -53,6 +83,7 @@ void print_help_menu(){
     printf("Use : msids [interface] [options]\n");
     printf("\nOptions :\n");
     printf("-a         Set the rules file.\n           By default, this is the file named ids.rules which is located in the same folder as msids.\n\n");
+    printf("-d         Show informations about all frames.\n           Normally, nothing is displayed when reading frames.\n\n");
     printf("-l         Define the number of frames to read.\n           By default, the number of frames is fixed at 25.\n\n");
     printf("-p         Enable the print of alerts.\n           By default, alerts are just written in the syslog.\n\n");
     printf("\nFor more information, visit our GitHub :\nhttps://github.com/Teckinfor/MySecureIDS\n");
@@ -68,6 +99,8 @@ int main(int argc, char *argv[])
         int is_help = 0;
         int is_address = 0;
         char* file_address;
+        u_char* display_all_frames = (u_char*)0;
+  
         for(int i = 0; i < argc; i++){
                 
                 //Setting up the interface
@@ -95,6 +128,11 @@ int main(int argc, char *argv[])
                 else if(!strcmp(argv[i],"-h")||!strcmp(argv[i],"--help")){
                         print_help_menu();
                         is_help = 1;
+                }
+
+                //Show all frames
+                else if(!strcmp(argv[i],"-d")){
+                        display_all_frames = (u_char*)1;
                 }
 
                 //Set the rules file
