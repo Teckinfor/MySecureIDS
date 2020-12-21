@@ -46,7 +46,7 @@ void my_packet_handler(u_char *args,const struct pcap_pkthdr *header,const u_cha
         ETHER_Frame frame;
         populate_packet_ds(header,packet,&frame,args);
 
-        if(args){
+        if(args[1]){
                 if(frame.ethernet_type == IPV4){
                         switch (show_protocol(&frame))
                         {
@@ -74,6 +74,12 @@ void my_packet_handler(u_char *args,const struct pcap_pkthdr *header,const u_cha
                 }
                 
         }
+
+        else if(args[2]){
+                if(show_protocol(&frame) == 3){
+                                print_payload(frame.data.data.data_length,frame.data.data.data);
+                        }
+        }
         
 
 }
@@ -84,6 +90,7 @@ void print_help_menu(){
     printf("\nOptions :\n");
     printf("-a         Set the rules file.\n           By default, this is the file named ids.rules which is located in the same folder as msids.\n\n");
     printf("-d         Show informations about all frames.\n           Normally, nothing is displayed when reading frames.\n\n");
+    printf("-D         Show informations about HTTP frames.\n           Normally, nothing is displayed when reading frames.\n\n");
     printf("-l         Define the number of frames to read.\n           By default, the number of frames is fixed at 25.\n\n");
     printf("-p         Enable the print of alerts.\n           By default, alerts are just written in the syslog.\n\n");
     printf("\nFor more information, visit our GitHub :\nhttps://github.com/Teckinfor/MySecureIDS\n");
@@ -99,7 +106,8 @@ int main(int argc, char *argv[])
         int is_help = 0;
         int is_address = 0;
         char* file_address;
-        u_char* display_all_frames = (u_char*)0;
+        u_char display_all_frames = (u_char)0;
+        u_char display_http = (u_char)0;
 
         for(int i = 0; i < argc; i++){
                 
@@ -132,7 +140,12 @@ int main(int argc, char *argv[])
 
                 //Show all frames
                 else if(!strcmp(argv[i],"-d")){
-                        display_all_frames = (u_char*)1;
+                        display_all_frames = (u_char)1;
+                }
+
+                //Show all frames
+                else if(!strcmp(argv[i],"-D")){
+                        display_http = (u_char)1;
                 }
 
                 //Set the rules file
@@ -190,8 +203,18 @@ int main(int argc, char *argv[])
                         nloop = 25;
                 }
 
-                u_char * arg_loop;
-                arg_loop = display_all_frames;
+                //Check if display_all_frames and display_http are enabled
+                if(display_all_frames && display_http){
+                        printf("You can't use option -D and -d at the same time\n");
+                        exit(1);
+                }
+                u_char arg_loop[2];
+                if(display_all_frames){
+                        arg_loop[1] = display_all_frames;
+                }
+                else if(display_http == 2){
+                        arg_loop[2] = display_http;
+                }
                 pcap_loop(handle, nloop, my_packet_handler, arg_loop);
 
                 return 0;
