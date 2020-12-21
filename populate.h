@@ -101,6 +101,7 @@ struct custom_ip
 {
         char source_ip[IP_ADDR_LEN_STR];
         char destination_ip[IP_ADDR_LEN_STR];
+        int protocol_ip;
         TCP_Segment data;
 
 } typedef IP_Packet;
@@ -116,5 +117,7 @@ struct custom_ethernet
 
 } typedef ETHER_Frame;
 
-int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet,ETHER_Frame * frame);
+int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet,ETHER_Frame * frame, u_char* dislay_all_frames);
 void print_payload(int payload_length, unsigned char *payload);
+int show_protocol(ETHER_Frame *frame);
+
