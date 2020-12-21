@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
         int is_address = 0;
         char* file_address;
         u_char* display_all_frames = (u_char*)0;
-  
+
         for(int i = 0; i < argc; i++){
                 
                 //Setting up the interface
@@ -190,7 +190,9 @@ int main(int argc, char *argv[])
                         nloop = 25;
                 }
 
-                pcap_loop(handle, nloop, my_packet_handler, NULL);
+                u_char * arg_loop;
+                arg_loop = display_all_frames;
+                pcap_loop(handle, nloop, my_packet_handler, arg_loop);
 
                 return 0;
         }
