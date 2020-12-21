@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include "populate.h"
 
-void generate_ip(unsigned int ip, char ip_addr[])
-{
+void generate_ip(unsigned int ip, char ip_addr[]){
     unsigned char bytes[4];
     bytes[0] = ip & 0xFF;
     bytes[1] = (ip >> 8) & 0xFF;
@@ -12,14 +11,13 @@ void generate_ip(unsigned int ip, char ip_addr[])
         "%d.%d.%d.%d", bytes[0], bytes[1], bytes[2], bytes[3]); 
 }
 
-void print_payload(int payload_length, unsigned char *payload)
-{
-        if (payload_length > 0) 
-        {
+void print_payload(int payload_length, unsigned char *payload){
+
+        if (payload_length > 0){
                 const u_char *temp_pointer = payload;
                 int byte_count = 0;
-                while (byte_count++ < payload_length) 
-                {
+                while (byte_count++ < payload_length){
+
                         if (byte_count%100 == 0){
                                 printf("\n");
                         }
@@ -31,8 +29,8 @@ void print_payload(int payload_length, unsigned char *payload)
 }
 
 
-int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, ETHER_Frame *custom_frame, u_char* display_all_frames)
-{
+int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, ETHER_Frame *custom_frame, u_char* display_all_frames){
+        
         if(display_all_frames[1]){
                 printf("\n-----New Frame-----\n");
         }
@@ -50,8 +48,8 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
         char dst_mac_address[ETHER_ADDR_LEN_STR];
         custom_frame->frame_size = header->caplen;
         // Convert unsigned char MAC to string MAC
-        for(int x=0;x<6;x++)
-        {       snprintf(src_mac_address+(x*2),ETHER_ADDR_LEN_STR,
+        for(int x=0;x<6;x++){       
+                snprintf(src_mac_address+(x*2),ETHER_ADDR_LEN_STR,
                         "%02x",ethernet->ether_shost[x]);
                 snprintf(dst_mac_address+(x*2),ETHER_ADDR_LEN_STR,
                         "%02x",ethernet->ether_dhost[x]);
@@ -60,8 +58,7 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
         strcpy(custom_frame->source_mac,src_mac_address);
         strcpy(custom_frame->destination_mac, dst_mac_address);
 
-        if(ntohs(ethernet->ether_type) == ETHERTYPE_ARP) 
-        {
+        if(ntohs(ethernet->ether_type) == ETHERTYPE_ARP){
 
                 custom_frame->ethernet_type = ARP;
                 if(display_all_frames[1]){
@@ -69,8 +66,7 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
                 }
         }
 
-        if(ntohs(ethernet->ether_type) == ETHERTYPE_IP) 
-        {
+        if(ntohs(ethernet->ether_type) == ETHERTYPE_IP){
                 custom_frame->ethernet_type = IPV4;
                 
                 if(display_all_frames[1]){
@@ -91,7 +87,12 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
 
                 size_ip = IP_HL(ip)*4;
 
-                if (size_ip < 20) {
+                if(display_all_frames[1]){
+                        printf("IP SOURCE : %s\n",inet_ntoa(ip->ip_src));
+                        printf("IP DESTINATION : %s\n",inet_ntoa(ip->ip_dst));
+                }
+
+                if (size_ip < 20){
 
                         if(display_all_frames[1]){
                                 printf("   * Invalid IP header length: %u bytes\n", size_ip);
