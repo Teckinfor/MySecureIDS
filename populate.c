@@ -90,6 +90,7 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
                 if(display_all_frames[1]){
                         printf("IP SOURCE : %s\n",inet_ntoa(ip->ip_src));
                         printf("IP DESTINATION : %s\n",inet_ntoa(ip->ip_dst));
+                        printf("Time to live : %d\n", (int)ip->ip_ttl);
                 }
 
                 if (size_ip < 20){
@@ -137,6 +138,10 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
 
                         custom_packet.data = custom_segment;
                         custom_frame->data = custom_packet;
+
+                        if(display_all_frames[1]){
+                                printf("%d ---> %d\n",custom_segment.source_port,custom_segment.destination_port);
+                        }
                 }
 
                 //Save protocol
