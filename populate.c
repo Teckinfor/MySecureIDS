@@ -33,7 +33,7 @@ void print_payload(int payload_length, unsigned char *payload)
 
 int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, ETHER_Frame *custom_frame, u_char* display_all_frames)
 {
-        if(display_all_frames){
+        if(display_all_frames[1]){
                 printf("\n-----New Frame-----\n");
         }
         const struct sniff_ethernet *ethernet; /* The ethernet header */
@@ -64,7 +64,7 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
         {
 
                 custom_frame->ethernet_type = ARP;
-                if(display_all_frames){
+                if(display_all_frames[1]){
                 printf("\nARP packet: %d\n",custom_frame->ethernet_type);
                 }
         }
@@ -73,7 +73,7 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
         {
                 custom_frame->ethernet_type = IPV4;
                 
-                if(display_all_frames){
+                if(display_all_frames[1]){
                 printf("\nIPV4 packet: %d\n",custom_frame->ethernet_type);
                 }
                 
@@ -93,7 +93,7 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
 
                 if (size_ip < 20) {
 
-                        if(display_all_frames){
+                        if(display_all_frames[1]){
                                 printf("   * Invalid IP header length: %u bytes\n", size_ip);
                         }
                         
@@ -102,14 +102,14 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
 
                 if((int)ip->ip_p==UDP_PROTOCOL){
 
-                        if(display_all_frames){
+                        if(display_all_frames[1]){
                                 printf("UDP Handling\n");
                         }
                         
                 }
                 else if((int)ip->ip_p==TCP_PROTOCOL){
                 
-                        if(display_all_frames){
+                        if(display_all_frames[1]){
                                 printf("TCP Handling\n");
                         }
                         custom_packet.protocol_ip = 1;
@@ -119,7 +119,7 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
                         size_tcp = TH_OFF(tcp)*4;
 
                         if (size_tcp < 20) {
-                                if(display_all_frames){
+                                if(display_all_frames[1]){
                                         printf("   * Invalid TCP header length: %u bytes\n", size_tcp);
                                 }
                                 return ERROR;
