@@ -37,10 +37,12 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
         const struct sniff_ethernet *ethernet; /* The ethernet header */
         const struct sniff_ip *ip; /* The IP header */
         const struct sniff_tcp *tcp; /* The TCP header */
+        const struct sniff_udp *udp;
         unsigned char *payload; /* Packet payload */
 
         u_int size_ip;
         u_int size_tcp;
+        u_int size_udp;
 
         ethernet = (struct sniff_ethernet*)(packet);
         //ETHER_Frame custom_frame;
@@ -107,6 +109,15 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
                         if(display_all_frames[1]){
                                 printf("UDP Handling\n");
                         }
+
+                        udp = (struct sniff_udp*)(packet + SIZE_ETHERNET + size_ip);
+                        UDP_Packet custom_udp;
+
+                        custom_udp.source_port = ntohs(udp->port_src);
+                        custom_udp.source_port = ntohs(udp->port_dst);
+                        size_udp = (udp->len + 4);
+                        payload = (u_char *)(packet + SIZE_ETHERNET + size_ip + size_udp);
+                        custom_udp.data = payload;
                         
                 }
                 else if((int)ip->ip_p==TCP_PROTOCOL){
@@ -162,7 +173,7 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
 
 int show_protocol(ETHER_Frame *frame){
         if(frame->ethernet_type == ARP){
-                return 0;
+                return 5;
         }
 
         if(frame->data.protocol_ip == 1){ 
