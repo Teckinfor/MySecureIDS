@@ -16,7 +16,67 @@ struct ids_rule{
         char* options;
 } typedef Rule;
 
-void rule_matcher(Rule *rules_ds, ETHER_Frame *frame){
+void rule_matcher(Rule *rules_ds, ETHER_Frame *frame, int count)
+{
+        int id_protocol;
+        switch(rules_ds->protocol)
+        {
+                case "TCP": id_protocol = 1;
+                break;
+
+                case "UDP": id_protocol = 2;
+                break;
+
+                case "HTTP": id_protocol = 3;
+                break;
+
+                case "any": id_protocol = 0;
+                break;
+        }
+
+        char *portsrc_ptr;
+        int portsrc_int = (int) strtol(rules_ds->port_src, &portsrc_ptr, 10);
+
+        char *portdst_ptr;
+        int portdst_int = (int) strtol(rules_ds->port_dst, &portdst_ptr, 10);
+
+	for (i = 0; i<count; i++)
+{
+	
+	char log_msg = [rules_ds->options]
+
+
+	if (id_protocol == show_protocol(&frame))
+	{
+		if (rules_ds->ip_src == frame->data.source_ip)
+		{
+	
+			if (portsrc_int == frame->data.data.source_port || rules_ds->port_src == "any")
+			{
+
+				if (rules_ds->ip_dst == frame->data.destination_ip || rules_ds->ip_dst == "any")
+				{
+
+					if (portdst_int== frame-> data.data.destination_port || rules_ds->port_dst == "any")
+                                        {
+                                                if (rules_ds->action == "alert")
+                                                {
+
+                                                printf("Packet : ALERT");
+                                                openlog("ALERT", LOG_PID);
+                                                syslog (log_msg);
+                                                closelog();
+
+                                                }			
+
+                                        }
+                                }
+                        }
+                }
+        }
+
+}
+
 }
 
 
