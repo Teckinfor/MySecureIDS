@@ -2,111 +2,173 @@
 #include "populate.h"
 #include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
 
 #define MAXLINE 255
 
 struct ids_rule{
-        char* action;
-        char* protocol;
-        char* ip_src;
-        char* port_src;
-        char* direction;
-        char* ip_dst;
-        char* port_dst;
-        char* options;
+        int action;
+        int protocol;
+        char ip_src[IP_ADDR_LEN_STR];
+        int port_src;
+        char ip_dst[IP_ADDR_LEN_STR];
+        int port_dst;
+        char options[MAXLINE];
 } typedef Rule;
 
-void rule_matcher(Rule *rules_ds, ETHER_Frame *frame, int count)
-{
-        int id_protocol;
-        switch(rules_ds->protocol)
-        {
-                case "TCP": id_protocol = 1;
-                break;
+struct args_loop{
+        u_char args[2];
+        Rule lst_rules[255];
+        int n_rules;
+}typedef Arguments;
 
-                case "UDP": id_protocol = 2;
-                break;
+void rule_matcher(Rule *rules_ds, ETHER_Frame *frame, int count){
 
-                case "HTTP": id_protocol = 3;
-                break;
-
-                case "any": id_protocol = 0;
-                break;
-        }
-
-        char *portsrc_ptr;
-        int portsrc_int = (int) strtol(rules_ds->port_src, &portsrc_ptr, 10);
-
-        char *portdst_ptr;
-        int portdst_int = (int) strtol(rules_ds->port_dst, &portdst_ptr, 10);
-
-	for (i = 0; i<count; i++)
-{
+        char any[IP_ADDR_LEN_STR] = "any";
+	for (int i = 0; i<count; i++){
 	
-	char log_msg = [rules_ds->options]
+                char *log_msg = rules_ds[i].options;
 
+                if (rules_ds[i].protocol == show_protocol(frame)){
+                        
+                        if(rules_ds[i].protocol == 1 || rules_ds[i].protocol == 3){
 
-	if (id_protocol == show_protocol(&frame))
-	{
-		if (rules_ds->ip_src == frame->data.source_ip)
-		{
-	
-			if (portsrc_int == frame->data.data.source_port || rules_ds->port_src == "any")
-			{
+                                if (rules_ds[i].ip_src == frame->data.source_ip || !strcmp(rules_ds[i].ip_src,any))
+                                {      
+                        
+                                        if (rules_ds[i].port_src == frame->data.data.source_port || rules_ds[i].port_src == 0)
+                                        {       
 
-				if (rules_ds->ip_dst == frame->data.destination_ip || rules_ds->ip_dst == "any")
-				{
+                                                if (rules_ds[i].ip_dst == frame->data.destination_ip || !strcmp(rules_ds[i].ip_dst,any))
+                                                {       
 
-					if (portdst_int== frame-> data.data.destination_port || rules_ds->port_dst == "any")
-                                        {
-                                                if (rules_ds->action == "alert")
-                                                {
+                                                        if (rules_ds[i].port_dst == frame-> data.data.destination_port || rules_ds[i].port_dst == 0)
+                                                        {       
+                                                                if (rules_ds->action == 1)
+                                                                {
 
-                                                printf("Packet : ALERT");
-                                                openlog("ALERT", LOG_PID);
-                                                syslog (log_msg);
-                                                closelog();
+                                                                printf("Packet : ALERT\n");
+                                                                openlog("ALERT", LOG_PID|LOG_CONS,LOG_USER);
+                                                                syslog(LOG_INFO, log_msg);
+                                                                closelog();
 
-                                                }			
+                                                                }			
 
+                                                        }
+                                                }
+                                        }
+                                }
+                        }
+
+                        else if(rules_ds[i].protocol == 2){
+
+                                if (rules_ds[i].ip_src == frame->data.source_ip || !strcmp(rules_ds[i].ip_src,any))
+                                {      
+                        
+                                        if (rules_ds[i].port_src == frame->data.udp_data.source_port || rules_ds[i].port_src == 0)
+                                        {       
+
+                                                if (rules_ds[i].ip_dst == frame->data.destination_ip || !strcmp(rules_ds[i].ip_dst,any))
+                                                {       
+
+                                                        if (rules_ds[i].port_dst == frame->data.udp_data.destination_port || rules_ds[i].port_dst == 0)
+                                                        {       
+                                                                if (rules_ds->action == 1)
+                                                                {
+
+                                                                printf("Packet : ALERT\n");
+                                                                openlog("ALERT", LOG_PID|LOG_CONS,LOG_USER);
+                                                                syslog(LOG_INFO, log_msg);
+                                                                closelog();
+
+                                                                }			
+
+                                                        }
+                                                }
                                         }
                                 }
                         }
                 }
-        }
 
-}
+        }
 
 }
 
 
 void read_rules(FILE * file, Rule *rules_ds, int count){
         char rule[MAXLINE];
+        char *protocol;
+        char* action;
+
         for(int i = 0; i < count; i++){
                 fgets(rule,MAXLINE,file);
-                rules_ds[i].action = strtok(rule," ");
-                rules_ds[i].protocol = strtok(NULL," ");
-                rules_ds[i].ip_src = strtok(NULL," ");
-                rules_ds[i].port_src = strtok(NULL," ");
-                rules_ds[i].direction = strtok(NULL," ");
-                rules_ds[i].ip_dst = strtok(NULL," ");
-                rules_ds[i].port_dst = strtok(NULL," ");
-                rules_ds[i].options = strtok(NULL,")");
+
+                action = strtok(rule," ");
+                if(!strcmp(action,"alert")){
+                        rules_ds[i].action = 1;
+                }
+
+                protocol = strtok(NULL," ");
+                if(!strcmp(protocol,"tcp")){
+                        rules_ds[i].protocol = 1;
+                }
+                else if(!strcmp(protocol,"udp")){
+                        rules_ds[i].protocol = 2;
+                }
+                else if(!strcmp(protocol,"http")){
+                        rules_ds[i].protocol = 3;
+                }
+                else {
+                        rules_ds[i].protocol = 0;
+                }
+
+                char* ip_src = strtok(NULL," ");
+                strcpy(rules_ds[i].ip_src,ip_src);
+
+                char* port_src_buf = strtok(NULL," ");
+                if(!strcmp(port_src_buf,"any")){
+                        rules_ds[i].port_src = 0;
+                }
+                else {
+                        char* endptr1;
+                        rules_ds[i].port_src = (int)strtol(port_src_buf, &endptr1, 10);
+                }
+
+                strtok(NULL," "); //No direction
+
+                char* ip_dst = strtok(NULL," ");
+                strcpy(rules_ds[i].ip_dst,ip_dst);
+
+                char* port_dst_buf = strtok(NULL," ");
+                if(!strcmp(port_dst_buf, "any")){
+                        rules_ds[i].port_dst = 0;
+                }
+                else {
+                        char* endptr;
+                        rules_ds[i].port_dst = (int)strtol(port_dst_buf, &endptr, 10);
+                }
+
+                char* opt = strtok(NULL,")");
+                strcpy(rules_ds[i].options,opt);
 
                 //Remove the first character from the options which is "("
                 for(int j = 0; j < strlen(rules_ds[i].options); j++){
                         rules_ds[i].options[j] = rules_ds[i].options[j+1];
                 }
+
         }
+
+        
 }
 
 
 void my_packet_handler(u_char *args,const struct pcap_pkthdr *header,const u_char *packet){
 
+        Arguments * args_lst = (Arguments *) args;
         ETHER_Frame frame;
-        populate_packet_ds(header,packet,&frame,args);
+        populate_packet_ds(header,packet,&frame,args_lst->args);
 
-        if(args[1]){
+        if(args_lst->args[1]){
                 if(frame.ethernet_type == IPV4){
                         switch (show_protocol(&frame))
                         {
@@ -135,12 +197,13 @@ void my_packet_handler(u_char *args,const struct pcap_pkthdr *header,const u_cha
                 
         }
 
-        else if(args[2]){
+        else if(args_lst->args[2]){
                 if(show_protocol(&frame) == 3){
                                 print_payload(frame.data.data.data_length,frame.data.data.data);
                         }
         }
-        
+
+        rule_matcher(args_lst->lst_rules,&frame,args_lst->n_rules);
 
 }
 
@@ -275,7 +338,23 @@ int main(int argc, char *argv[])
                 else if(display_http == 2){
                         arg_loop[2] = display_http;
                 }
-                pcap_loop(handle, nloop, my_packet_handler, arg_loop);
+
+                Arguments argument_loop;
+                argument_loop.args[0] = arg_loop[0];
+                argument_loop.args[1] = arg_loop[1];
+                for(int i = 0; i < n_rules; i++){
+                        argument_loop.lst_rules[i].action = lst_rules[i].action;
+                        argument_loop.lst_rules[i].protocol = lst_rules[i].protocol;
+                        argument_loop.lst_rules[i].port_dst = lst_rules[i].port_dst;
+                        argument_loop.lst_rules[i].port_src = lst_rules[i].port_src;
+
+                        strcpy(argument_loop.lst_rules[i].ip_dst, lst_rules[i].ip_dst);
+                        strcpy(argument_loop.lst_rules[i].ip_src, lst_rules[i].ip_src);
+                        strcpy(argument_loop.lst_rules[i].options, lst_rules[i].options);
+                }
+                argument_loop.n_rules = n_rules;
+
+                pcap_loop(handle, nloop, my_packet_handler, (u_char*)&argument_loop);
 
                 return 0;
         }
