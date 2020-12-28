@@ -76,6 +76,12 @@ struct sniff_tcp {
         u_short th_urp;         /* urgent pointer */
 };
 
+struct sniff_udp{
+        u_short port_src;       // Source port
+        u_short port_dst;      // Destination port
+        u_short len;            // Datagram length
+        u_short crc;            // Checksum
+};
 
 struct custom_udp
 {
@@ -103,6 +109,7 @@ struct custom_ip
         char destination_ip[IP_ADDR_LEN_STR];
         int protocol_ip;
         TCP_Segment data;
+        UDP_Packet udp_data;
 
 } typedef IP_Packet;
 
@@ -120,4 +127,3 @@ struct custom_ethernet
 int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet,ETHER_Frame * frame, u_char* dislay_all_frames);
 void print_payload(int payload_length, unsigned char *payload);
 int show_protocol(ETHER_Frame *frame);
-
