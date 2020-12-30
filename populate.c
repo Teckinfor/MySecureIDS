@@ -29,10 +29,10 @@ void print_payload(int payload_length, unsigned char *payload){
 }
 
 
-int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, ETHER_Frame *custom_frame, u_char* display_all_frames){
+int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, ETHER_Frame *custom_frame, int display_all_frames, int count_frame){
         
-        if(display_all_frames[1]){
-                printf("\n-----New Frame-----\n");
+        if(display_all_frames){
+                printf("\n-----New Frame : n°%d-----\n", count_frame);
         }
         const struct sniff_ethernet *ethernet; /* The ethernet header */
         const struct sniff_ip *ip; /* The IP header */
@@ -63,7 +63,7 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
         if(ntohs(ethernet->ether_type) == ETHERTYPE_ARP){
 
                 custom_frame->ethernet_type = ARP;
-                if(display_all_frames[1]){
+                if(display_all_frames){
                 printf("\nARP packet: %d\n",custom_frame->ethernet_type);
                 }
         }
@@ -71,7 +71,7 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
         if(ntohs(ethernet->ether_type) == ETHERTYPE_IP){
                 custom_frame->ethernet_type = IPV4;
                 
-                if(display_all_frames[1]){
+                if(display_all_frames){
                 printf("\nIPV4 packet: %d\n",custom_frame->ethernet_type);
                 }
                 
@@ -89,7 +89,7 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
 
                 size_ip = IP_HL(ip)*4;
 
-                if(display_all_frames[1]){
+                if(display_all_frames){
                         printf("IP SOURCE : %s\n",inet_ntoa(ip->ip_src));
                         printf("IP DESTINATION : %s\n",inet_ntoa(ip->ip_dst));
                         printf("Time to live : %d\n", (int)ip->ip_ttl);
@@ -97,7 +97,7 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
 
                 if (size_ip < 20){
 
-                        if(display_all_frames[1]){
+                        if(display_all_frames){
                                 printf("   * Invalid IP header length: %u bytes\n", size_ip);
                         }
                         
@@ -106,7 +106,7 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
 
                 if((int)ip->ip_p==UDP_PROTOCOL){
 
-                        if(display_all_frames[1]){
+                        if(display_all_frames){
                                 printf("UDP Handling\n");
                         }
 
@@ -122,7 +122,7 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
                 }
                 else if((int)ip->ip_p==TCP_PROTOCOL){
                 
-                        if(display_all_frames[1]){
+                        if(display_all_frames){
                                 printf("TCP Handling\n");
                         }
                         custom_packet.protocol_ip = 1;
@@ -132,7 +132,7 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
                         size_tcp = TH_OFF(tcp)*4;
 
                         if (size_tcp < 20) {
-                                if(display_all_frames[1]){
+                                if(display_all_frames){
                                         printf("   * Invalid TCP header length: %u bytes\n", size_tcp);
                                 }
                                 return ERROR;
@@ -150,7 +150,7 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
                         custom_packet.data = custom_segment;
                         custom_frame->data = custom_packet;
 
-                        if(display_all_frames[1]){
+                        if(display_all_frames){
                                 printf("%d ---> %d\n",custom_segment.source_port,custom_segment.destination_port);
                         }
                 }
@@ -172,8 +172,9 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
 }
 
 int show_protocol(ETHER_Frame *frame){
-        if(frame->ethernet_type == ARP){
+        if(frame->ethernet_type == 2054){
                 return 5;
+                //ARP
         }
 
         if(frame->data.protocol_ip == 1){ 
@@ -186,6 +187,7 @@ int show_protocol(ETHER_Frame *frame){
                                         temp_pointer++;
                                         if((char)*temp_pointer == 'P'){
                                                 return 3;
+                                                //HTTP
                                 
                                         }
                                 
@@ -193,7 +195,7 @@ int show_protocol(ETHER_Frame *frame){
                         }
                         
                 }
-                if((char)*temp_pointer == 'G'){
+                else if((char)*temp_pointer == 'G'){
                                 temp_pointer++;
                         if((char)*temp_pointer == 'E'){
                                 temp_pointer++;
@@ -201,6 +203,7 @@ int show_protocol(ETHER_Frame *frame){
                                         temp_pointer++;
                                         if((char)*temp_pointer == ' '){
                                                 return 3;
+                                                //HTTP
                                 
                                         }
                                 
@@ -208,11 +211,19 @@ int show_protocol(ETHER_Frame *frame){
                         }
                         
                 }
+
+                else if(frame->data.data.destination_port == 443 || frame->data.data.source_port == 443){
+                        return 4;
+                        //HTTPS
+                }
+
                 return 1;
+                //TCP
         }
 
         if (frame->data.protocol_ip == 2){
                 return 2;
+                //UDP
         }
-        return 0;
+        return 0; //Not implemented
 }
