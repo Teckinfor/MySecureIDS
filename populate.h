@@ -124,6 +124,6 @@ struct custom_ethernet
 
 } typedef ETHER_Frame;
 
-int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet,ETHER_Frame * frame, u_char* dislay_all_frames);
+int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet,ETHER_Frame * frame, int dislay_all_frames, int count_frame);
 void print_payload(int payload_length, unsigned char *payload);
 int show_protocol(ETHER_Frame *frame);
