@@ -6,6 +6,10 @@
 
 #define MAXLINE 255
 
+int count_frame = 1;
+int display_all_frames = 0;
+int display_http = 0;
+
 struct ids_rule{
         int action;
         int protocol;
@@ -17,7 +21,6 @@ struct ids_rule{
 } typedef Rule;
 
 struct args_loop{
-        u_char args[2];
         Rule lst_rules[255];
         int n_rules;
 }typedef Arguments;
@@ -118,6 +121,12 @@ void read_rules(FILE * file, Rule *rules_ds, int count){
                 else if(!strcmp(protocol,"http")){
                         rules_ds[i].protocol = 3;
                 }
+                else if(!strcmp(protocol,"https")){
+                        rules_ds[i].protocol = 4;
+                }
+                else if(!strcmp(protocol,"arp")){
+                        rules_ds[i].protocol = 5;
+                }
                 else {
                         rules_ds[i].protocol = 0;
                 }
@@ -144,8 +153,8 @@ void read_rules(FILE * file, Rule *rules_ds, int count){
                         rules_ds[i].port_dst = 0;
                 }
                 else {
-                        char* endptr;
-                        rules_ds[i].port_dst = (int)strtol(port_dst_buf, &endptr, 10);
+                        char* endptr2;
+                        rules_ds[i].port_dst = (int)strtol(port_dst_buf, &endptr2, 10);
                 }
 
                 char* opt = strtok(NULL,")");
@@ -166,9 +175,9 @@ void my_packet_handler(u_char *args,const struct pcap_pkthdr *header,const u_cha
 
         Arguments * args_lst = (Arguments *) args;
         ETHER_Frame frame;
-        populate_packet_ds(header,packet,&frame,args_lst->args);
+        populate_packet_ds(header,packet,&frame,display_all_frames,count_frame);
 
-        if(args_lst->args[1]){
+        if(display_all_frames){
                 if(frame.ethernet_type == IPV4){
                         switch (show_protocol(&frame))
                         {
@@ -180,6 +189,12 @@ void my_packet_handler(u_char *args,const struct pcap_pkthdr *header,const u_cha
                                 break;
                         case 3:
                                 printf("Protocol : HTTP\n");
+                                break;
+                        case 4:
+                                printf("Protocol : HTTPS\n");
+                                break;
+                        case 5:
+                                printf("Protocol : ARP\n");
                                 break;
                         case 0:
                                 printf("Protocol : Not referenced\n");
@@ -197,7 +212,7 @@ void my_packet_handler(u_char *args,const struct pcap_pkthdr *header,const u_cha
                 
         }
 
-        else if(args_lst->args[2]){
+        else if(display_http){
                 if(show_protocol(&frame) == 3){
                                 print_payload(frame.data.data.data_length,frame.data.data.data);
                         }
@@ -205,11 +220,13 @@ void my_packet_handler(u_char *args,const struct pcap_pkthdr *header,const u_cha
 
         rule_matcher(args_lst->lst_rules,&frame,args_lst->n_rules);
 
+        count_frame++;
+
 }
 
 void print_help_menu(){
     printf("MySecureIDS - msids\n");
-    printf("Use : msids [interface] [options]\n");
+    printf("Use : msids [interface] <options>\n");
     printf("\nOptions :\n");
     printf("-a         Set the rules file.\n           By default, this is the file named ids.rules which is located in the same folder as msids.\n\n");
     printf("-d         Show informations about all frames.\n           Normally, nothing is displayed when reading frames.\n\n");
@@ -229,8 +246,6 @@ int main(int argc, char *argv[])
         int is_help = 0;
         int is_address = 0;
         char* file_address;
-        u_char display_all_frames = (u_char)0;
-        u_char display_http = (u_char)0;
 
         for(int i = 0; i < argc; i++){
                 
@@ -263,12 +278,12 @@ int main(int argc, char *argv[])
 
                 //Show all frames
                 else if(!strcmp(argv[i],"-d")){
-                        display_all_frames = (u_char)1;
+                        display_all_frames = 1;
                 }
 
                 //Show all frames
                 else if(!strcmp(argv[i],"-D")){
-                        display_http = (u_char)1;
+                        display_http = 1;
                 }
 
                 //Set the rules file
@@ -331,17 +346,8 @@ int main(int argc, char *argv[])
                         printf("You can't use option -D and -d at the same time\n");
                         exit(1);
                 }
-                u_char arg_loop[2];
-                if(display_all_frames){
-                        arg_loop[1] = display_all_frames;
-                }
-                else if(display_http == 2){
-                        arg_loop[2] = display_http;
-                }
 
                 Arguments argument_loop;
-                argument_loop.args[0] = arg_loop[0];
-                argument_loop.args[1] = arg_loop[1];
                 for(int i = 0; i < n_rules; i++){
                         argument_loop.lst_rules[i].action = lst_rules[i].action;
                         argument_loop.lst_rules[i].protocol = lst_rules[i].protocol;
