@@ -33,6 +33,6 @@ aka maxWLM & Teckinfor
 You can choose another file than ids.rules, but the rules have to be written in the same way.\
 There are 2 actions possible with msids : alert & save
 ### Example :
-> **alert [protocol] [IP SOURCE] [PORT SOURCE] -> [IP DESTINATION] [PORT DESTINATION] (msg:"This is the message for the rule";content:"content in the payload";)**\
-> **save [protocol] [IP SOURCE] [PORT SOURCE] -> [IP DESTINATION] [PORT DESTINATION] ()**\
-> **save [protocol] [IP SOURCE] [PORT SOURCE] -> [IP DESTINATION] [PORT DESTINATION] (file:"/home/user/msids/example";)**\
+> **alert [protocol] [ip source] [port source] -> [ip destination] [port destination] (msg:"This is the message for the rule";content:"content in the payload";)**\
+> **save [protocol] [ip source] [port source] -> [ip destination] [port destination] ()**\
+> **save [protocol] [ip source] [port source] -> [ip destination] [port destination] (file:"/home/user/msids/example";)**
