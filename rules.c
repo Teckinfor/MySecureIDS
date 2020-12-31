@@ -25,14 +25,15 @@ void rule_matcher(Rule *rules_ds, ETHER_Frame *frame, int count, int print_alert
                         
             if(rules_ds[i].protocol == 1 || rules_ds[i].protocol == 3 || rules_ds[i].protocol == 4){
 
-                if (rules_ds[i].ip_src == frame->data.source_ip || !strcmp(rules_ds[i].ip_src,any)){      
+                if (!strcmp(rules_ds[i].ip_src, frame->data.source_ip) || !strcmp(rules_ds[i].ip_src,any)){      
                         
-                    if (rules_ds[i].port_src == frame->data.data.source_port || rules_ds[i].port_src == 0){       
+                    if (rules_ds[i].port_src == frame->data.data.source_port || rules_ds[i].port_src == 0){   
 
-                        if (rules_ds[i].ip_dst == frame->data.destination_ip || !strcmp(rules_ds[i].ip_dst,any)){       
+                        if (!strcmp(rules_ds[i].ip_dst, frame->data.destination_ip) || !strcmp(rules_ds[i].ip_dst,any)){       
 
-                            if (rules_ds[i].port_dst == frame-> data.data.destination_port || rules_ds[i].port_dst == 0){       
+                            if (rules_ds[i].port_dst == frame-> data.data.destination_port || rules_ds[i].port_dst == 0){    
                                 
+                                // ALERT
                                 if (rules_ds[i].action == 1){
 
                                     if(rules_ds[i].protocol != 4){
@@ -46,7 +47,7 @@ void rule_matcher(Rule *rules_ds, ETHER_Frame *frame, int count, int print_alert
                                             strtok(pcontent,"\"");
 
                                             char * content = strtok(NULL,"\"");
-                                            
+
                                             if(strstr((char *)frame->data.data.data,content) != NULL){
                                                 if(print_alert){
                                                     printf("ALERT : %s\n", msg);
@@ -77,8 +78,73 @@ void rule_matcher(Rule *rules_ds, ETHER_Frame *frame, int count, int print_alert
                                         closelog();
                                     }
 
-                                }			
-                            }
+                                }
+
+                                // SAVE
+                                else if(rules_ds[i].action == 2){
+                                    
+                                    char file[MAXLINE];
+
+                                    if(strstr(rules_ds[i].options,"file") == NULL){
+                                        strcpy(file,"save_msids");
+                                    }
+                                    else{
+                                        char save_options [255];
+                                        strcpy(save_options, rules_ds[i].options);
+                                                
+                                        char * pfile = strstr(save_options,"file");
+                                        strtok(pfile,"\"");
+
+                                        strcpy(file,strtok(NULL,"\""));
+                                        printf("%s\n",file);
+                                    }
+                                    
+
+                                    FILE *fic = fopen(file,"a");
+
+                                    fputs("-----New frame-----\n",fic);
+                                    char protocol[10];
+                                    switch (rules_ds[i].protocol){
+                                    case 1:
+                                        strcpy(protocol,"TCP");
+                                        break;
+                                    
+                                    case 3:
+                                        strcpy(protocol,"HTTP");
+                                        break;
+                                    
+                                    case 4:
+                                        strcpy(protocol,"HTTPS");
+                                        break;
+                                    }
+                                    fprintf(fic, "Protocol : %s\n", protocol);
+                                    fprintf(fic, "IP : %s --> %s\n", frame->data.source_ip, frame->data.destination_ip);
+                                    fprintf(fic, "Port : %d --> %d\n", frame->data.data.source_port, frame->data.data.destination_port);
+
+                                    ///TIME
+                                    time_t Time;
+                                    struct tm *time_struct;
+                                    char str_time[20];
+
+                                    time(&Time);
+                                    time_struct = localtime(&Time);
+                                    bzero(str_time,20);
+                                    strftime(str_time,20,"%d-%m-%Y at %H:%M:%S", time_struct);
+                                    /// Source : https://www.developpez.net/forums/d558432/general-developpement/programmation-systeme/linux/heure-systeme-c/
+
+                                    fprintf(fic, "%s\n", str_time);
+
+                                    if(frame->data.data.data != NULL){
+                                        fputs("~~~~~DATA~~~~~\n", fic);
+                                        fputs((char*)frame->data.data.data, fic);
+                                        fputs("\n\n\n",fic);
+                                    }
+
+                                    fclose(fic);
+
+                                    
+                                }
+                            }		
                         }
                     }
                 }
@@ -87,11 +153,11 @@ void rule_matcher(Rule *rules_ds, ETHER_Frame *frame, int count, int print_alert
             //IF UDP
             else if(rules_ds[i].protocol == 2){
 
-                if (rules_ds[i].ip_src == frame->data.source_ip || !strcmp(rules_ds[i].ip_src,any)){      
+                if (!strcmp(rules_ds[i].ip_src, frame->data.source_ip) || !strcmp(rules_ds[i].ip_src,any)){      
                         
                     if (rules_ds[i].port_src == frame->data.udp_data.source_port || rules_ds[i].port_src == 0){       
 
-                        if (rules_ds[i].ip_dst == frame->data.destination_ip || !strcmp(rules_ds[i].ip_dst,any)){      
+                        if (!strcmp(rules_ds[i].ip_dst, frame->data.destination_ip) || !strcmp(rules_ds[i].ip_dst,any)){      
 
                             if (rules_ds[i].port_dst == frame->data.udp_data.destination_port || rules_ds[i].port_dst == 0){       
                                 
@@ -127,11 +193,113 @@ void rule_matcher(Rule *rules_ds, ETHER_Frame *frame, int count, int print_alert
                                         syslog(LOG_INFO, msg);
                                         closelog();
                                     }
-                                }			
+                                }
+
+                                // SAVE
+                                else if(rules_ds[i].action == 2){
+                                    
+                                    char file[MAXLINE];
+                                    
+                                    if(strstr(rules_ds[i].options,"file") == NULL){
+                                        strcpy(file,"save_msids");
+                                    }
+                                    else{
+                                        char save_options [255];
+                                        strcpy(save_options, rules_ds[i].options);
+                                                
+                                        char * pfile = strstr(save_options,"file");
+                                        strtok(pfile,"\"");
+
+                                        strcpy(file,strtok(NULL,"\""));
+                                        printf("%s\n",file);
+                                    }
+                                    
+
+                                    FILE *fic = fopen(file,"a");
+
+                                    fputs("-----New frame-----\n",fic);
+                                    fputs("Protocol : UDP\n",fic);
+                                    fprintf(fic, "IP : %s --> %s\n", frame->data.source_ip, frame->data.destination_ip);
+                                    fprintf(fic, "Port : %d --> %d\n", frame->data.udp_data.source_port, frame->data.udp_data.destination_port);
+
+                                    ///TIME
+                                    time_t Time;
+                                    struct tm *time_struct;
+                                    char str_time[20];
+
+                                    time(&Time);
+                                    time_struct = localtime(&Time);
+                                    bzero(str_time,20);
+                                    strftime(str_time,20,"%d-%m-%Y at %H:%M:%S", time_struct);
+                                    /// Source : https://www.developpez.net/forums/d558432/general-developpement/programmation-systeme/linux/heure-systeme-c/
+
+                                    fprintf(fic, "%s\n", str_time);
+
+                                    if(frame->data.udp_data.data != NULL){
+                                        fputs("~~~~~DATA~~~~~\n", fic);
+                                        fputs((char*)frame->data.udp_data.data, fic);
+                                        fputs("\n\n\n",fic);
+                                    }
+
+                                    fclose(fic);		
+                                }
                             }
                         }
                     }
                 }
+            }
+
+            // ARP
+            else if (rules_ds[i].protocol == 5){
+                
+                if(rules_ds[i].action == 1){
+                    if(print_alert){
+                        printf("ALERT : %s\n", msg);
+                    }
+                    openlog("ALERT", LOG_PID|LOG_CONS,LOG_USER);
+                    syslog(LOG_INFO, msg);
+                    closelog();
+                }
+
+                else if(rules_ds[i].action == 2){
+                                    
+                    char file[MAXLINE];
+                                    
+                    if(strstr(rules_ds[i].options,"file") == NULL){
+                        strcpy(file,"save_msids");
+                    }
+                    else{
+                        char save_options [255];
+                        strcpy(save_options, rules_ds[i].options);
+                                                
+                        char * pfile = strstr(save_options,"file");
+                        strtok(pfile,"\"");
+
+                        strcpy(file,strtok(NULL,"\""));
+                        printf("%s\n",file);
+                    }
+                                    
+
+                    FILE *fic = fopen(file,"a");
+
+                    fputs("-----New frame-----\n",fic);
+                    fputs("Protocol : ARP\n",fic);
+
+                    ///TIME
+                    time_t Time;
+                    struct tm *time_struct;
+                    char str_time[20];
+
+                    time(&Time);
+                    time_struct = localtime(&Time);
+                    bzero(str_time,20);
+                    strftime(str_time,20,"%d-%m-%Y at %H:%M:%S", time_struct);
+                    // Source : https://www.developpez.net/forums/d558432/general-developpement/programmation-systeme/linux/heure-systeme-c/
+
+                    fprintf(fic, "%s\n\n\n", str_time);
+
+                    fclose(fic);	
+                } 
             }
         }
     }
@@ -146,10 +314,13 @@ void read_rules(FILE * file, Rule *rules_ds, int count){
         for(int i = 0; i < count; i++){
                 fgets(rule,MAXLINE,file);
 
-                //ACTION
+                //ACTION alert = 1, save = 2
                 action = strtok(rule," ");
                 if(!strcmp(action,"alert")){
-                        rules_ds[i].action = 1;
+                    rules_ds[i].action = 1;
+                }
+                else if(!strcmp(action,"save")){
+                    rules_ds[i].action = 2;
                 }
 
                 //PROTOCOL
