@@ -25,3 +25,5 @@ aka maxWLM & Teckinfor
 - [x] Option to show HTTP's data
 - [x] Option for the direction file ids.rules
 - [x] Option to print all alert
+- [x] Option for the interface
+- [x] Option the number of frames (number of "loop")
