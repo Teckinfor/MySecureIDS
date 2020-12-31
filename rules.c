@@ -6,7 +6,7 @@ void rule_matcher(Rule *rules_ds, ETHER_Frame *frame, int count, int print_alert
     char any[IP_ADDR_LEN_STR] = "any";
 	for (int i = 0; i<count; i++){
 	
-        if(strstr(rules_ds->options,"msg") != NULL){
+        if(strstr(rules_ds[i].options,"msg") != NULL){
 
             char save_opt [255];
             strcpy(save_opt, rules_ds[i].options);
@@ -33,19 +33,20 @@ void rule_matcher(Rule *rules_ds, ETHER_Frame *frame, int count, int print_alert
 
                             if (rules_ds[i].port_dst == frame-> data.data.destination_port || rules_ds[i].port_dst == 0){       
                                 
-                                if (rules_ds->action == 1){
+                                if (rules_ds[i].action == 1){
 
                                     if(rules_ds[i].protocol != 4){
 
-                                        if(strstr(rules_ds->options,"content") != NULL){
+                                        if(strstr(rules_ds[i].options,"content") != NULL){
+                                            
                                             char save_options [255];
                                             strcpy(save_options, rules_ds[i].options);
-
+                                            
                                             char * pcontent = strstr(save_options,"content");
                                             strtok(pcontent,"\"");
 
                                             char * content = strtok(NULL,"\"");
-
+                                            
                                             if(strstr((char *)frame->data.data.data,content) != NULL){
                                                 if(print_alert){
                                                     printf("ALERT : %s\n", msg);
@@ -94,7 +95,7 @@ void rule_matcher(Rule *rules_ds, ETHER_Frame *frame, int count, int print_alert
 
                             if (rules_ds[i].port_dst == frame->data.udp_data.destination_port || rules_ds[i].port_dst == 0){       
                                 
-                                if (rules_ds->action == 1){
+                                if (rules_ds[i].action == 1){
 
                                     if(strstr(rules_ds[i].options,"content") != NULL){
                                         char save_options [255];
