@@ -1,175 +1,12 @@
-  
 #include "populate.h"
-#include <stdlib.h>
-#include <string.h>
-#include <syslog.h>
+#include "help.c"
 
-#define MAXLINE 255
-
+//GLOBAL
 int count_frame = 1;
 int display_all_frames = 0;
 int display_http = 0;
-
-struct ids_rule{
-        int action;
-        int protocol;
-        char ip_src[IP_ADDR_LEN_STR];
-        int port_src;
-        char ip_dst[IP_ADDR_LEN_STR];
-        int port_dst;
-        char options[MAXLINE];
-} typedef Rule;
-
-struct args_loop{
-        Rule lst_rules[255];
-        int n_rules;
-}typedef Arguments;
-
-void rule_matcher(Rule *rules_ds, ETHER_Frame *frame, int count){
-
-        char any[IP_ADDR_LEN_STR] = "any";
-	for (int i = 0; i<count; i++){
-	
-                char *log_msg = rules_ds[i].options;
-
-                if (rules_ds[i].protocol == show_protocol(frame)){
-                        
-                        if(rules_ds[i].protocol == 1 || rules_ds[i].protocol == 3){
-
-                                if (rules_ds[i].ip_src == frame->data.source_ip || !strcmp(rules_ds[i].ip_src,any))
-                                {      
-                        
-                                        if (rules_ds[i].port_src == frame->data.data.source_port || rules_ds[i].port_src == 0)
-                                        {       
-
-                                                if (rules_ds[i].ip_dst == frame->data.destination_ip || !strcmp(rules_ds[i].ip_dst,any))
-                                                {       
-
-                                                        if (rules_ds[i].port_dst == frame-> data.data.destination_port || rules_ds[i].port_dst == 0)
-                                                        {       
-                                                                if (rules_ds->action == 1)
-                                                                {
-
-                                                                printf("Packet : ALERT\n");
-                                                                openlog("ALERT", LOG_PID|LOG_CONS,LOG_USER);
-                                                                syslog(LOG_INFO, log_msg);
-                                                                closelog();
-
-                                                                }			
-
-                                                        }
-                                                }
-                                        }
-                                }
-                        }
-
-                        else if(rules_ds[i].protocol == 2){
-
-                                if (rules_ds[i].ip_src == frame->data.source_ip || !strcmp(rules_ds[i].ip_src,any))
-                                {      
-                        
-                                        if (rules_ds[i].port_src == frame->data.udp_data.source_port || rules_ds[i].port_src == 0)
-                                        {       
-
-                                                if (rules_ds[i].ip_dst == frame->data.destination_ip || !strcmp(rules_ds[i].ip_dst,any))
-                                                {       
-
-                                                        if (rules_ds[i].port_dst == frame->data.udp_data.destination_port || rules_ds[i].port_dst == 0)
-                                                        {       
-                                                                if (rules_ds->action == 1)
-                                                                {
-
-                                                                printf("Packet : ALERT\n");
-                                                                openlog("ALERT", LOG_PID|LOG_CONS,LOG_USER);
-                                                                syslog(LOG_INFO, log_msg);
-                                                                closelog();
-
-                                                                }			
-
-                                                        }
-                                                }
-                                        }
-                                }
-                        }
-                }
-
-        }
-
-}
-
-
-void read_rules(FILE * file, Rule *rules_ds, int count){
-        char rule[MAXLINE];
-        char *protocol;
-        char* action;
-
-        for(int i = 0; i < count; i++){
-                fgets(rule,MAXLINE,file);
-
-                action = strtok(rule," ");
-                if(!strcmp(action,"alert")){
-                        rules_ds[i].action = 1;
-                }
-
-                protocol = strtok(NULL," ");
-                if(!strcmp(protocol,"tcp")){
-                        rules_ds[i].protocol = 1;
-                }
-                else if(!strcmp(protocol,"udp")){
-                        rules_ds[i].protocol = 2;
-                }
-                else if(!strcmp(protocol,"http")){
-                        rules_ds[i].protocol = 3;
-                }
-                else if(!strcmp(protocol,"https")){
-                        rules_ds[i].protocol = 4;
-                }
-                else if(!strcmp(protocol,"arp")){
-                        rules_ds[i].protocol = 5;
-                }
-                else {
-                        rules_ds[i].protocol = 0;
-                }
-
-                char* ip_src = strtok(NULL," ");
-                strcpy(rules_ds[i].ip_src,ip_src);
-
-                char* port_src_buf = strtok(NULL," ");
-                if(!strcmp(port_src_buf,"any")){
-                        rules_ds[i].port_src = 0;
-                }
-                else {
-                        char* endptr1;
-                        rules_ds[i].port_src = (int)strtol(port_src_buf, &endptr1, 10);
-                }
-
-                strtok(NULL," "); //No direction
-
-                char* ip_dst = strtok(NULL," ");
-                strcpy(rules_ds[i].ip_dst,ip_dst);
-
-                char* port_dst_buf = strtok(NULL," ");
-                if(!strcmp(port_dst_buf, "any")){
-                        rules_ds[i].port_dst = 0;
-                }
-                else {
-                        char* endptr2;
-                        rules_ds[i].port_dst = (int)strtol(port_dst_buf, &endptr2, 10);
-                }
-
-                char* opt = strtok(NULL,")");
-                strcpy(rules_ds[i].options,opt);
-
-                //Remove the first character from the options which is "("
-                for(int j = 0; j < strlen(rules_ds[i].options); j++){
-                        rules_ds[i].options[j] = rules_ds[i].options[j+1];
-                }
-
-        }
-
-        
-}
-
+int print_alert = 0;
+//////////////////////
 
 void my_packet_handler(u_char *args,const struct pcap_pkthdr *header,const u_char *packet){
 
@@ -213,27 +50,17 @@ void my_packet_handler(u_char *args,const struct pcap_pkthdr *header,const u_cha
         }
 
         else if(display_http){
+
                 if(show_protocol(&frame) == 3){
-                                print_payload(frame.data.data.data_length,frame.data.data.data);
-                        }
+
+                        print_payload(frame.data.data.data_length,frame.data.data.data);
+                }
         }
 
-        rule_matcher(args_lst->lst_rules,&frame,args_lst->n_rules);
+        rule_matcher(args_lst->lst_rules, &frame, args_lst->n_rules, print_alert);
 
         count_frame++;
 
-}
-
-void print_help_menu(){
-    printf("MySecureIDS - msids\n");
-    printf("Use : msids [interface] <options>\n");
-    printf("\nOptions :\n");
-    printf("-a         Set the rules file.\n           By default, this is the file named ids.rules which is located in the same folder as msids.\n\n");
-    printf("-d         Show informations about all frames.\n           Normally, nothing is displayed when reading frames.\n\n");
-    printf("-D         Show informations about HTTP frames.\n           Normally, nothing is displayed when reading frames.\n\n");
-    printf("-l         Define the number of frames to read.\n           By default, the number of frames is fixed at 25.\n\n");
-    printf("-p         Enable the print of alerts.\n           By default, alerts are just written in the syslog.\n\n");
-    printf("\nFor more information, visit our GitHub :\nhttps://github.com/Teckinfor/MySecureIDS\n");
 }
 
 int main(int argc, char *argv[]) 
@@ -284,6 +111,11 @@ int main(int argc, char *argv[])
                 //Show all frames
                 else if(!strcmp(argv[i],"-D")){
                         display_http = 1;
+                }
+
+                //Show alerts
+                else if(!strcmp(argv[i],"-p")){
+                        print_alert = 1;
                 }
 
                 //Set the rules file
@@ -338,7 +170,7 @@ int main(int argc, char *argv[])
                 pcap_activate(handle);
 
                 if(!is_nloop){
-                        nloop = 25;
+                        nloop = 1000;
                 }
 
                 //Check if display_all_frames and display_http are enabled
