@@ -87,6 +87,7 @@ struct sniff_udp{
         u_short crc;            // Checksum
 };
 
+#define SIZE_UDP 8
 struct custom_udp
 {
         int source_port;
