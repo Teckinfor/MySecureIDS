@@ -158,8 +158,8 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
                         custom_segment.data = payload;
                         custom_segment.data_length = payload_length;
 
-                        custom_packet.data = custom_segment;
-                        custom_frame->data = custom_packet;
+                        custom_packet.data = custom_segment; 
+                        custom_frame->data = custom_packet; 
 
                         if(display_all_frames){
                                 printf("%d ---> %d\n",custom_segment.source_port,custom_segment.destination_port);
