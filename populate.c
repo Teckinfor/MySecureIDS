@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "populate.h"
 
 void generate_ip(unsigned int ip, char ip_addr[]){
@@ -18,9 +17,6 @@ void print_payload(int payload_length, unsigned char *payload){
                 int byte_count = 0;
                 while (byte_count++ < payload_length){
 
-                        if (byte_count%100 == 0){
-                                printf("\n");
-                        }
                         printf("%c", (char)*temp_pointer);
                         temp_pointer++;
                 }
@@ -78,7 +74,7 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
 
                 ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);
                 IP_Packet custom_packet;
-                //custom_packet.protocol_ip = 0;
+
                 char src_ip[IP_ADDR_LEN_STR];
                 char dst_ip[IP_ADDR_LEN_STR];
                 generate_ip(ip->ip_src.s_addr,src_ip);
@@ -110,14 +106,16 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
                                 printf("UDP Handling\n");
                         }
 
-                        udp = (struct sniff_udp*)(packet + SIZE_ETHERNET + size_ip);
-                        UDP_Packet custom_udp;
+                        udp = (struct sniff_udp*)(packet + SIZE_ETHERNET + size_ip);        
 
+                        UDP_Packet custom_udp;
                         custom_udp.source_port = ntohs(udp->port_src);
                         custom_udp.source_port = ntohs(udp->port_dst);
-                        size_udp = (udp->len + 4);
-                        payload = (u_char *)(packet + SIZE_ETHERNET + size_ip + size_udp);
+                        // size_udp = (udp->len + 4);
+                        payload = (u_char *)(packet + SIZE_ETHERNET + size_ip + udp->len);
                         custom_udp.data = payload;
+
+                        custom_packet.udp_data = custom_udp;
                         
                 }
                 else if((int)ip->ip_p==TCP_PROTOCOL){
@@ -169,61 +167,4 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
                 }        
         }       
 	return 0;
-}
-
-int show_protocol(ETHER_Frame *frame){
-        if(frame->ethernet_type == 2054){
-                return 5;
-                //ARP
-        }
-
-        if(frame->data.protocol_ip == 1){ 
-                const u_char *temp_pointer = frame->data.data.data;
-                if((char)*temp_pointer == 'H'){
-                                temp_pointer++;
-                        if((char)*temp_pointer == 'T'){
-                                temp_pointer++;
-                                if((char)*temp_pointer == 'T'){
-                                        temp_pointer++;
-                                        if((char)*temp_pointer == 'P'){
-                                                return 3;
-                                                //HTTP
-                                
-                                        }
-                                
-                                }
-                        }
-                        
-                }
-                else if((char)*temp_pointer == 'G'){
-                                temp_pointer++;
-                        if((char)*temp_pointer == 'E'){
-                                temp_pointer++;
-                                if((char)*temp_pointer == 'T'){
-                                        temp_pointer++;
-                                        if((char)*temp_pointer == ' '){
-                                                return 3;
-                                                //HTTP
-                                
-                                        }
-                                
-                                }
-                        }
-                        
-                }
-
-                else if(frame->data.data.destination_port == 443 || frame->data.data.source_port == 443){
-                        return 4;
-                        //HTTPS
-                }
-
-                return 1;
-                //TCP
-        }
-
-        if (frame->data.protocol_ip == 2){
-                return 2;
-                //UDP
-        }
-        return 0; //Not implemented
 }
