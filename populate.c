@@ -38,7 +38,6 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
 
         u_int size_ip;
         u_int size_tcp;
-        u_int size_udp;
 
         ethernet = (struct sniff_ethernet*)(packet);
         //ETHER_Frame custom_frame;
@@ -109,13 +108,27 @@ int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet, E
                         udp = (struct sniff_udp*)(packet + SIZE_ETHERNET + size_ip);        
 
                         UDP_Packet custom_udp;
-                        custom_udp.source_port = ntohs(udp->port_src);
-                        custom_udp.source_port = ntohs(udp->port_dst);
-                        // size_udp = (udp->len + 4);
-                        payload = (u_char *)(packet + SIZE_ETHERNET + size_ip + udp->len);
-                        custom_udp.data = payload;
 
+                        // if(udp->len < 8) {
+                        //         if(display_all_frames){
+                        //                 printf("   * Invalid UDP header length: %u bytes\n", udp->len);
+                        //         }
+                        //         return ERROR;
+                        // }
+
+                        custom_udp.source_port = ntohs(udp->port_src);
+                        custom_udp.destination_port = ntohs(udp->port_dst);
+
+                        payload = (u_char *)(packet + SIZE_ETHERNET + size_ip + SIZE_UDP);
+
+                        custom_udp.data = payload;
+                        
                         custom_packet.udp_data = custom_udp;
+                        custom_frame->data = custom_packet;
+
+                        if(display_all_frames){
+                                printf("%d ---> %d\n",custom_udp.source_port,custom_udp.destination_port);
+                        }
                         
                 }
                 else if((int)ip->ip_p==TCP_PROTOCOL){
