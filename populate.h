@@ -1,11 +1,15 @@
 #include <pcap.h>
 #include <netinet/in.h>
 #include <netinet/if_ether.h>
+#include <syslog.h>
+#include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #define u_char unsigned char
 #define u_short unsigned short
 #define u_int unsigned int
+#define MAXLINE 255
 
 
 
@@ -124,6 +128,23 @@ struct custom_ethernet
 
 } typedef ETHER_Frame;
 
+struct ids_rule{
+        int action;
+        int protocol;
+        char ip_src[IP_ADDR_LEN_STR];
+        int port_src;
+        char ip_dst[IP_ADDR_LEN_STR];
+        int port_dst;
+        char options[MAXLINE];
+} typedef Rule;
+
+struct args_loop{
+        Rule lst_rules[255];
+        int n_rules;
+}typedef Arguments;
+
 int populate_packet_ds(const struct pcap_pkthdr *header, const u_char *packet,ETHER_Frame * frame, int dislay_all_frames, int count_frame);
 void print_payload(int payload_length, unsigned char *payload);
 int show_protocol(ETHER_Frame *frame);
+void rule_matcher(Rule *rules_ds, ETHER_Frame *frame, int count, int print_alert);
+void read_rules(FILE * file, Rule *rules_ds, int count);
