@@ -23,7 +23,7 @@ void rule_matcher(Rule *rules_ds, ETHER_Frame *frame, int count, int print_alert
         //IF TCP
         if (rules_ds[i].protocol == show_protocol(frame)){
                         
-            if(rules_ds[i].protocol == 1 || rules_ds[i].protocol == 3){
+            if(rules_ds[i].protocol == 1 || rules_ds[i].protocol == 3 || rules_ds[i].protocol == 4){
 
                 if (rules_ds[i].ip_src == frame->data.source_ip || !strcmp(rules_ds[i].ip_src,any)){      
                         
@@ -35,16 +35,28 @@ void rule_matcher(Rule *rules_ds, ETHER_Frame *frame, int count, int print_alert
                                 
                                 if (rules_ds->action == 1){
 
-                                    if(strstr(rules_ds->options,"content") != NULL){
-                                        char save_options [255];
-                                        strcpy(save_options, rules_ds[i].options);
+                                    if(rules_ds[i].protocol != 4){
 
-                                        char * pcontent = strstr(save_options,"content");
-                                        strtok(pcontent,"\"");
+                                        if(strstr(rules_ds->options,"content") != NULL){
+                                            char save_options [255];
+                                            strcpy(save_options, rules_ds[i].options);
 
-                                        char * content = strtok(NULL,"\"");
+                                            char * pcontent = strstr(save_options,"content");
+                                            strtok(pcontent,"\"");
 
-                                        if(strstr((char *)frame->data.data.data,content) != NULL){
+                                            char * content = strtok(NULL,"\"");
+
+                                            if(strstr((char *)frame->data.data.data,content) != NULL){
+                                                if(print_alert){
+                                                    printf("ALERT : %s\n", msg);
+                                                }
+                                                openlog("ALERT", LOG_PID|LOG_CONS,LOG_USER);
+                                                syslog(LOG_INFO, msg);
+                                                closelog();
+                                            }
+                                        }
+
+                                        else {
                                             if(print_alert){
                                                 printf("ALERT : %s\n", msg);
                                             }
@@ -53,8 +65,9 @@ void rule_matcher(Rule *rules_ds, ETHER_Frame *frame, int count, int print_alert
                                             closelog();
                                         }
                                     }
-
+                                    
                                     else {
+
                                         if(print_alert){
                                             printf("ALERT : %s\n", msg);
                                         }
@@ -77,13 +90,13 @@ void rule_matcher(Rule *rules_ds, ETHER_Frame *frame, int count, int print_alert
                         
                     if (rules_ds[i].port_src == frame->data.udp_data.source_port || rules_ds[i].port_src == 0){       
 
-                        if (rules_ds[i].ip_dst == frame->data.destination_ip || !strcmp(rules_ds[i].ip_dst,any)){       
+                        if (rules_ds[i].ip_dst == frame->data.destination_ip || !strcmp(rules_ds[i].ip_dst,any)){      
 
                             if (rules_ds[i].port_dst == frame->data.udp_data.destination_port || rules_ds[i].port_dst == 0){       
                                 
                                 if (rules_ds->action == 1){
 
-                                    if(strstr(rules_ds->options,"content") != NULL){
+                                    if(strstr(rules_ds[i].options,"content") != NULL){
                                         char save_options [255];
                                         strcpy(save_options, rules_ds[i].options);
 
@@ -91,14 +104,17 @@ void rule_matcher(Rule *rules_ds, ETHER_Frame *frame, int count, int print_alert
                                         strtok(pcontent,"\"");
 
                                         char * content = strtok(NULL,"\"");
-                                        printf("yo : %s\n", (char*)frame->data.udp_data.data);
-                                        if(strstr((char *)frame->data.udp_data.data,content) != NULL){
-                                            if(print_alert){
-                                                printf("ALERT : %s\n", msg);
+
+                                        if((char *)frame->data.udp_data.data != NULL){ // check data != NULL
+
+                                            if(strstr((char *)frame->data.udp_data.data,content) != NULL){
+                                                if(print_alert){
+                                                    printf("ALERT : %s\n", msg);
+                                                }
+                                                openlog("ALERT", LOG_PID|LOG_CONS,LOG_USER);
+                                                syslog(LOG_INFO, msg);
+                                                closelog();
                                             }
-                                            openlog("ALERT", LOG_PID|LOG_CONS,LOG_USER);
-                                            syslog(LOG_INFO, msg);
-                                            closelog();
                                         }
                                     }
 
