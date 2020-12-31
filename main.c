@@ -15,7 +15,10 @@ void my_packet_handler(u_char *args,const struct pcap_pkthdr *header,const u_cha
         populate_packet_ds(header,packet,&frame,display_all_frames,count_frame);
 
         if(display_all_frames){
-                if(frame.ethernet_type == IPV4){
+                if (frame.ethernet_type == ARP){
+                        printf("Protocol : ARP\n");
+                }
+                else if(frame.ethernet_type == IPV4){
                         switch (show_protocol(&frame))
                         {
                         case 1:
@@ -29,9 +32,6 @@ void my_packet_handler(u_char *args,const struct pcap_pkthdr *header,const u_cha
                                 break;
                         case 4:
                                 printf("Protocol : HTTPS\n");
-                                break;
-                        case 5:
-                                printf("Protocol : ARP\n");
                                 break;
                         case 0:
                                 printf("Protocol : Not referenced\n");
@@ -60,6 +60,10 @@ void my_packet_handler(u_char *args,const struct pcap_pkthdr *header,const u_cha
         rule_matcher(args_lst->lst_rules, &frame, args_lst->n_rules, print_alert);
 
         count_frame++;
+
+        //Clean buffer
+        frame.ethernet_type = 0;
+        frame.data.protocol_ip = 0;
 
 }
 
