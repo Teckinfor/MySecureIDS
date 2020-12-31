@@ -6,13 +6,13 @@ The IDS should listen for network traffic and warn if a packet is suspicious by 
 Created by WALLEMME Maxime & SENECHAL Julien
 aka maxWLM & Teckinfor
 ```
-##Prerequisite
+## Prerequisite
 > apt-get install libpcap-dev
 
-##Compile command
+## Compile command
 > gcc main.c populate.c rules.c protocol.c -o msids -lpcap -Wall
 
-##What's included
+## What's included
 - [x] TCP
 - [x] UDP
 - [x] HTTP
