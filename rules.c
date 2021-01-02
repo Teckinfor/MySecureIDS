@@ -96,7 +96,6 @@ void rule_matcher(Rule *rules_ds, ETHER_Frame *frame, int count, int print_alert
                                         strtok(pfile,"\"");
 
                                         strcpy(file,strtok(NULL,"\""));
-                                        printf("%s\n",file);
                                     }
                                     
 
