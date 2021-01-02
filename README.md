@@ -18,7 +18,7 @@ aka maxWLM & Teckinfor
 - [x] UDP
 - [x] HTTP
 - [x] HTTPS
-- [ ] FTP 
+- [X] FTP 
 - [x] Save all frames that match the rules
 - [x] Alert on syslog all frames that match the rules
 - [x] -help
