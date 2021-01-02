@@ -46,6 +46,11 @@ int show_protocol(ETHER_Frame *frame){
                         //HTTPS
                 }
 
+                else if(frame->data.data.destination_port == 20 || frame->data.data.source_port == 20 || frame->data.data.destination_port == 21 || frame->data.data.source_port == 20){
+                        return 6;
+                        //FTP
+                }
+                
                 return 1;
                 //TCP
         }
