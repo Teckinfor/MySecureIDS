@@ -23,7 +23,7 @@ void rule_matcher(Rule *rules_ds, ETHER_Frame *frame, int count, int print_alert
         //IF TCP
         if (rules_ds[i].protocol == show_protocol(frame)){
                         
-            if(rules_ds[i].protocol == 1 || rules_ds[i].protocol == 3 || rules_ds[i].protocol == 4){
+            if(rules_ds[i].protocol == 1 || rules_ds[i].protocol == 3 || rules_ds[i].protocol == 4 || rules_ds[i].protocol == 6){
 
                 if (!strcmp(rules_ds[i].ip_src, frame->data.source_ip) || !strcmp(rules_ds[i].ip_src,any)){      
                         
@@ -115,6 +115,10 @@ void rule_matcher(Rule *rules_ds, ETHER_Frame *frame, int count, int print_alert
                                     
                                     case 4:
                                         strcpy(protocol,"HTTPS");
+                                        break;
+                                        
+                                    case 6:
+                                        strcpy(protocol,"FTP");
                                         break;
                                     }
                                     fprintf(fic, "Protocol : %s\n", protocol);
@@ -339,6 +343,9 @@ void read_rules(FILE * file, Rule *rules_ds, int count){
                 }
                 else if(!strcmp(protocol,"arp")){
                         rules_ds[i].protocol = 5;
+                }
+                else if(!strcmp(protocol,"ftp")){
+                        rules_ds[i].protocol = 6;
                 }
                 else {
                         rules_ds[i].protocol = 0;
