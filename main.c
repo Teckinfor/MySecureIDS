@@ -204,7 +204,7 @@ int main(int argc, char *argv[])
                 return 0;
         }
         else if(!is_help){
-                printf("Missing arguments. Do \"ids --help\" or \"ids -h\" for more information.\n");
+                printf("Missing arguments. Do \"msids --help\" or \"msids -h\" for more information.\n");
         }
         
 }
