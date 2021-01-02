@@ -33,6 +33,9 @@ void my_packet_handler(u_char *args,const struct pcap_pkthdr *header,const u_cha
                         case 4:
                                 printf("Protocol : HTTPS\n");
                                 break;
+                        case 6:
+                                printf("Protocol : FTP\n");
+                                break;
                         case 0:
                                 printf("Protocol : Not referenced\n");
                                 break;
@@ -41,7 +44,7 @@ void my_packet_handler(u_char *args,const struct pcap_pkthdr *header,const u_cha
                                 break;
                         }
 
-                        if(show_protocol(&frame) == 3){
+                        if(show_protocol(&frame) == 3 || show_protocol(&frame) == 6){
                                 printf("\n~~~~~DATA~~~~~\n");
                                 print_payload(frame.data.data.data_length,frame.data.data.data);
                         }
