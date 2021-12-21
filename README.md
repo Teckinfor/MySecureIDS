@@ -13,6 +13,18 @@ aka maxWLM & Teckinfor
 ## Compile command
 > gcc main.c populate.c rules.c protocol.c -o msids -lpcap -Wall
 
+## How ids.rules works
+You can choose another file than ids.rules, but the rules have to be written in the same way.\
+There are 2 actions possible with msids : alert & save\
+You can replace all ip and ports with "any"
+### Example :
+#### Alert
+> **alert [protocol] [ip source] [port source] -> [ip destination] [port destination] (msg:"This is the message for the rule";content:"content in the payload";)**
+#### Save #1
+> **save [protocol] [ip source] [port source] -> [ip destination] [port destination] ()**
+#### Save #2
+> **save [protocol] [ip source] any -> [ip destination] [port destination] (file:"/home/user/msids/example";)**
+
 ## What's included
 - [x] TCP
 - [x] UDP
@@ -28,15 +40,3 @@ aka maxWLM & Teckinfor
 - [x] Option to print all alert
 - [x] Option for the interface
 - [x] Option the number of frames (number of "loop")
-
-## How ids.rules works
-You can choose another file than ids.rules, but the rules have to be written in the same way.\
-There are 2 actions possible with msids : alert & save\
-You can replace all ip and ports with "any"
-### Example :
-#### Alert
-> **alert [protocol] [ip source] [port source] -> [ip destination] [port destination] (msg:"This is the message for the rule";content:"content in the payload";)**
-#### Save #1
-> **save [protocol] [ip source] [port source] -> [ip destination] [port destination] ()**
-#### Save #2
-> **save [protocol] [ip source] any -> [ip destination] [port destination] (file:"/home/user/msids/example";)**
