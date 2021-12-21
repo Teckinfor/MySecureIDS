@@ -1,4 +1,4 @@
-# MySecureIDS - msids
+# MySecureIDS
 ## Description
 IDS based on kernel Linux.\
 Project carried out as part of the development lesson in computer systems security studies.\
