@@ -13,6 +13,11 @@ aka maxWLM & Teckinfor
 ## Compile command
 > gcc main.c populate.c rules.c protocol.c -o msids -lpcap -Wall
 
+## How it works ?
+To see all feature available, just do
+> sudo ./msids -h
+(msids needs to be executed with root permissions)
+
 ## How ids.rules works
 You can choose another file than ids.rules, but the rules have to be written in the same way.\
 There are 2 actions possible with msids : alert & save\
